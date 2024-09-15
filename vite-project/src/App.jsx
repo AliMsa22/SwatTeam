@@ -19,6 +19,7 @@ import AddFile from './components/AddFile.jsx';
 import EditFile from './components/EditFile.jsx';
 import EditProfile from './components/EditProfile.jsx';
 import './index.css'; // Add your Tailwind CSS file here
+import FileView from './components/FileView.jsx';
 
 
 function App() {
@@ -44,6 +45,7 @@ function App() {
           <Route path='/dashboard/add_file/:id' element={<AddFile/>}/>
           <Route path='/dashboard/edit_file/:id' element={<EditFile/>}/>
           <Route path='/dashboard/edit_profile/:id' element={<EditProfile/>}/>
+          <Route path='/dashboard/view_file/:id' element={<FileView/>}/>
         </Route>
       </Routes>
     </Router>

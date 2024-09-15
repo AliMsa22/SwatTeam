@@ -5,10 +5,10 @@ import filePic from '../assets/signup.png';  // Dummy image for files
 const FolderView = () => {
     // Example data for files
     const [files, setFiles] = useState([
-        { id: 1, name: 'Document1.xlsx', description: 'Financial Report', imgSrc: filePic },
-        { id: 2, name: 'Document2.xlsx', description: 'Project Plan', imgSrc: filePic },
-        { id: 3, name: 'Document3.xlsx', description: 'Meeting Notes', imgSrc: filePic },
-        { id: 4, name: 'Document4.xlsx', description: 'Expense Tracker', imgSrc: filePic },
+        { id: 1, name: 'Document1.xlsx', description: 'Financial Report', imgSrc: filePic, sheets: 3 },
+        { id: 2, name: 'Document2.xlsx', description: 'Project Plan', imgSrc: filePic, sheets: 2 },
+        { id: 3, name: 'Document3.xlsx', description: 'Meeting Notes', imgSrc: filePic, sheets: 4 },
+        { id: 4, name: 'Document4.xlsx', description: 'Expense Tracker', imgSrc: filePic, sheets: 1 },
     ]);
 
     const [searchQuery, setSearchQuery] = useState('');
@@ -24,6 +24,10 @@ const FolderView = () => {
 
     const handleEdit = (id) => {
         navigate(`/dashboard/edit_file/${id}`);
+    };
+
+    const handleCardClick = (id) => {
+        navigate(`/dashboard/view_file/${id}`);
     };
 
     return (
@@ -44,7 +48,8 @@ const FolderView = () => {
                 {filteredFiles.map(file => (
                     <div
                         key={file.id}
-                        className="bg-white shadow-lg rounded-lg overflow-hidden flex flex-col items-center"
+                        onClick={() => handleCardClick(file.id)}
+                        className="bg-white shadow-lg rounded-lg overflow-hidden flex flex-col items-center cursor-pointer"
                     >
                         <img
                             className="w-24 h-24 object-cover rounded-full mb-4"
@@ -58,7 +63,10 @@ const FolderView = () => {
                             <div className="mt-2 flex space-x-2">
                                 {/* Edit Button */}
                                 <button
-                                    onClick={() => handleEdit(file.id)}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleEdit(file.id);
+                                    }}
                                     className="bg-blue-500 text-white px-3 py-1 rounded-lg shadow hover:bg-blue-600 transition"
                                 >
                                     Edit
@@ -66,7 +74,10 @@ const FolderView = () => {
 
                                 {/* Delete Button */}
                                 <button
-                                    onClick={() => handleDelete(file.id)}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDelete(file.id);
+                                    }}
                                     className="bg-red-500 text-white px-3 py-1 rounded-lg shadow hover:bg-red-600 transition"
                                 >
                                     Delete
