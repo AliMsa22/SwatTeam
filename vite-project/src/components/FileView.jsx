@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { PencilFill, TrashFill, PlusCircleFill, SaveFill } from 'react-bootstrap-icons';  // Importing Bootstrap Icons
+import { PencilFill, TrashFill, PlusCircleFill, SaveFill } from 'react-bootstrap-icons';
 
 const dummyExcelData = {
     1: {
@@ -18,18 +18,27 @@ const dummyExcelData = {
             { name: 'Sheet2', columns: ['Phase', 'Status'], data: [['Planning', 'Complete'], ['Development', 'Ongoing']] },
         ],
     },
-    // Add more dummy data as needed
 };
 
 const FileView = () => {
     const { id } = useParams();
-    const fileData = dummyExcelData[id];  // Get dummy data based on file ID
+    const fileData = dummyExcelData[id];
+
+    if (!fileData) {
+        return <div>File not found.</div>;
+    }
 
     const [activeTab, setActiveTab] = useState(0);
-    const [data, setData] = useState(fileData.sheets[activeTab].data);
-    const [columns, setColumns] = useState(fileData.sheets[activeTab].columns);
+    const [data, setData] = useState(fileData.sheets[0].data);
+    const [columns, setColumns] = useState(fileData.sheets[0].columns);
     const [searchQuery, setSearchQuery] = useState('');
-    const [selectedColumn, setSelectedColumn] = useState(columns[0]);  // Default to first column for search
+    const [selectedColumn, setSelectedColumn] = useState(fileData.sheets[0].columns[0]);
+
+    useEffect(() => {
+        setData(fileData.sheets[activeTab].data);
+        setColumns(fileData.sheets[activeTab].columns);
+        setSelectedColumn(fileData.sheets[activeTab].columns[0]);
+    }, [activeTab, fileData.sheets]);
 
     const handleCellEdit = (rowIndex, cellIndex, value) => {
         const updatedData = [...data];
@@ -44,15 +53,38 @@ const FileView = () => {
     };
 
     const handleAddColumn = () => {
-        setColumns([...columns, `New Column`]);
+        const newColumn = `Column ${columns.length + 1}`;
+        setColumns([...columns, newColumn]);
         const updatedData = data.map(row => [...row, '']);
         setData(updatedData);
     };
+    
 
     const handleDeleteColumn = (colIndex) => {
-        setColumns(columns.filter((_, index) => index !== colIndex));
-        const updatedData = data.map(row => row.filter((_, index) => index !== colIndex));
-        setData(updatedData);
+        if (columns.length > 1) {
+            const updatedColumns = columns.filter((_, index) => index !== colIndex);
+            const updatedData = data.map(row => row.filter((_, index) => index !== colIndex));
+            setColumns(updatedColumns);
+            setData(updatedData);
+
+            // Reset selectedColumn to the first column after deletion
+            setSelectedColumn(updatedColumns[0]);
+        } else {
+            alert("You must have at least one column.");
+        }
+    };
+
+    const handleAddRow = () => {
+        if (columns.length === 0) {
+            alert("Please add at least one column before adding rows.");
+            return;
+        }
+        const emptyRow = columns.map(() => '');
+        setData([...data, emptyRow]);
+    };
+
+    const handleDeleteRow = (rowIndex) => {
+        setData(data.filter((_, index) => index !== rowIndex));
     };
 
     const handleSearch = (e) => {
@@ -67,16 +99,11 @@ const FileView = () => {
         <div className="p-4 bg-gray-100 min-h-screen">
             <h1 className="text-2xl font-semibold mb-4">{fileData.fileName}</h1>
 
-            {/* Tabs for sheets */}
             <div className="flex space-x-4 mb-6">
                 {fileData.sheets.map((sheet, index) => (
                     <button
                         key={index}
-                        onClick={() => {
-                            setActiveTab(index);
-                            setData(fileData.sheets[index].data);
-                            setColumns(fileData.sheets[index].columns);
-                        }}
+                        onClick={() => setActiveTab(index)}
                         className={`px-4 py-2 rounded-lg ${activeTab === index ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'} transition`}
                     >
                         {sheet.name}
@@ -84,7 +111,6 @@ const FileView = () => {
                 ))}
             </div>
 
-            {/* Search and Filter */}
             <div className="mb-4 flex space-x-4">
                 <select
                     className="p-2 border border-gray-300 rounded-lg"
@@ -104,7 +130,6 @@ const FileView = () => {
                 />
             </div>
 
-            {/* Display the table for the active tab */}
             <div className="bg-white p-4 rounded-lg shadow-md">
                 <table className="min-w-full table-auto">
                     <thead>
@@ -150,19 +175,37 @@ const FileView = () => {
                                         />
                                     </td>
                                 ))}
+                                <td>
+                                    <button
+                                        onClick={() => handleDeleteRow(rowIndex)}
+                                        className="text-red-500 hover:text-red-700 transition"
+                                    >
+                                        <TrashFill />
+                                    </button>
+                                </td>
                             </tr>
                         ))}
+                        <tr>
+                            <td colSpan={columns.length + 1} className="text-center">
+                                <button
+                                    onClick={handleAddRow}
+                                    className={`text-green-500 hover:text-green-700 transition ${columns.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    disabled={columns.length === 0}
+                                >
+                                    <PlusCircleFill />
+                                </button>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
 
-            {/* Save Button */}
-            <div className="mt-6">
+            <div className="mt-4">
                 <button
                     className="px-4 py-2 bg-blue-500 text-white rounded-lg shadow hover:bg-blue-600 transition"
                     onClick={() => console.log('Data saved:', data, 'Columns saved:', columns)}
                 >
-                    <SaveFill className="mr-2" /> Save Changes
+                    <SaveFill /> Save
                 </button>
             </div>
         </div>
